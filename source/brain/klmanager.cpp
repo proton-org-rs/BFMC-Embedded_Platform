@@ -46,7 +46,8 @@ namespace brain
         periodics::CTotalVoltage& f_baterry,
         brain::CRobotStateMachine& f_robotStateMachine,
         periodics::CResourcemonitor& f_resourceM,
-        periodics::CTofsensor& f_tofSensorRight
+        periodics::CTofsensor& f_tofSensorRight,
+        periodics::CUltrasonicsensor& f_ultrasonicSensor
     )
     : m_klvalue(0)
     , m_alerts(f_alerts)
@@ -56,6 +57,7 @@ namespace brain
     , m_robotStateMachine(f_robotStateMachine)
     , m_resourceM(f_resourceM)
     , m_tofSensorRight(f_tofSensorRight)
+    , m_ultrasonicSensor(f_ultrasonicSensor)
     {
         /* constructor behaviour */
     }
@@ -93,6 +95,8 @@ namespace brain
                     m_robotStateMachine.serialCallbackBRAKEcommand("0", response);
                     ThisThread::sleep_for(chrono::milliseconds(50));
                     m_resourceM.serialCallbackRESMONCommand("0", response);
+                    m_tofSensorRight.serialCallbackTofsensorCommand("0", response);
+                    m_ultrasonicSensor.serialCallbackULTRASONICcommand("0", response);
                     uint8_globalsV_value_of_kl = 0;
                     m_alerts.alertsCommand("3", response);
                 }
@@ -113,6 +117,7 @@ namespace brain
                     uint8_globalsV_value_of_kl = 30;
                     m_robotStateMachine.serialCallbackVCDcommand("0;0;2", response);
                     m_tofSensorRight.serialCallbackTofsensorCommand("1", response);
+                    m_ultrasonicSensor.serialCallbackULTRASONICcommand("1", response);
                     m_alerts.alertsCommand("2", response);
                 }
             }
