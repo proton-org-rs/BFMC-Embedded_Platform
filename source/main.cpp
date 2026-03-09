@@ -56,7 +56,7 @@ periodics::CInstantConsumption g_instantconsumption(g_baseTick * 1000, A2, g_rpi
 periodics::CTotalVoltage g_totalvoltage(g_baseTick*3000, A4, g_rpi);
 
 // It's a task for sending periodically the IMU values
-periodics::CImu g_imu(g_baseTick*150, g_rpi, I2C_SDA, I2C_SCL);
+periodics::CImu g_imu(g_baseTick*5000, g_rpi, I2C_SDA, I2C_SCL);
 
 //PIN for a motor speed in ms, inferior and superior limit
 drivers::CSpeedingMotor g_speedingDriver(PB_4, -500, 500); //speed in mm/s
@@ -73,13 +73,13 @@ periodics::CResourcemonitor g_resourceMonitor(g_baseTick * 5000, g_rpi);
 utils::CHeadlight g_headlightLeft(g_baseTick * 100, PA_7, "leftLight");
 utils::CHeadlight g_headlightRight(g_baseTick * 100, PA_6, "rightLight");
 // Right TOF sensor on I2C2 (PB_3=SDA, PB_10=SCL)
-periodics::CTofsensor g_tofsensorRight(g_baseTick * 500, PB_6, PB_3, PB_10, g_rpi, "rightSide", 0x30, 300); // address changed to 0x30
+periodics::CTofsensor g_tofsensorRight(g_baseTick * 100, PB_6, PB_3, PB_10, g_rpi, "rightSide", 0x30, 300); // address changed to 0x30
 
 DigitalOut g_PC7(PC_7, 1); // Configure PC_7 as output and drive it high (D9 high for imu vcc)
 DigitalOut g_PA9(PA_9, 1); // Configure PA_9 as output and drive it high (D8 high for tof vcc)
 
-// HC-SR04 ultrasonic sensor — TRIG: D2 (PA_10), ECHO: D8 (PA_9), threshold 30 cm
-periodics::CUltrasonicsensor g_ultrasonicSensor(g_baseTick * 60, PA_10, PA_9, g_rpi, "ultrasonic", 30);
+// HC-SR04 ultrasonic sensor — TRIG: D7 (PA_8) , ECHO: D2 (PA_10), threshold 100 cm
+periodics::CUltrasonicsensor g_ultrasonicSensor(g_baseTick * 300, PA_8, PA_10, g_rpi, "ultrasonic", 30);
 /* USER NEW COMPONENT END */
 
 brain::CKlmanager g_klmanager(g_alerts, g_imu, g_instantconsumption, g_totalvoltage, g_robotstatemachine, g_resourceMonitor, g_tofsensorRight, g_ultrasonicSensor);

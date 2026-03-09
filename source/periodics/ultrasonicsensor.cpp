@@ -10,10 +10,10 @@ CUltrasonicsensor::CUltrasonicsensor(
     const std::string&          f_name,
     uint16_t                    f_threshold_cm)
     : utils::CTask(f_period)
+    , m_name(f_name)
     , m_trigger(f_trigger_pin, 0)
     , m_echo(f_echo_pin)
     , m_serial(f_serial)
-    , m_name(f_name)
     , m_isActive(false)
     , m_lastDetected(false)
     , m_threshold_cm(f_threshold_cm)
@@ -61,8 +61,8 @@ void CUltrasonicsensor::_run()
                 char buf[64];
                 snprintf(buf, sizeof(buf), "@%s:0;;\r\n", m_name.c_str());
                 m_serial.write(buf, strlen(buf));
-                m_lastDetected = false;
             }
+            m_lastDetected = false;
             return;
         }
     }
@@ -83,16 +83,19 @@ void CUltrasonicsensor::_run()
 
     bool detected = (distance_cm > 0 && distance_cm <= m_threshold_cm);
 
-    // Only report on state transitions (rising / falling edge)
-    if (detected && !m_lastDetected) {
+    if (detected) {
+        // While an object is in range, keep publishing its current distance.
         char buf[64];
-        snprintf(buf, sizeof(buf), "@%s:%u;;\r\n", m_name.c_str(), distance_cm);
+        snprintf(buf, sizeof(buf), "@%s:1;;\r\n", m_name.c_str());
         m_serial.write(buf, strlen(buf));
         m_lastDetected = true;
-    } else if (!detected && m_lastDetected) {
-        char buf[64];
-        snprintf(buf, sizeof(buf), "@%s:0;;\r\n", m_name.c_str());
-        m_serial.write(buf, strlen(buf));
+    } else {
+        // When object leaves range, publish one zero on transition.
+        if (m_lastDetected) {
+            char buf[64];
+            snprintf(buf, sizeof(buf), "@%s:0;;\r\n", m_name.c_str());
+            m_serial.write(buf, strlen(buf));
+        }
         m_lastDetected = false;
     }
 }

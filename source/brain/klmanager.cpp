@@ -95,6 +95,7 @@ namespace brain
                     m_robotStateMachine.serialCallbackBRAKEcommand("0", response);
                     ThisThread::sleep_for(chrono::milliseconds(50));
                     m_resourceM.serialCallbackRESMONCommand("0", response);
+                    m_tofSensorRight.serialCallbackTofsensorCommand("0", response);
                     m_ultrasonicSensor.serialCallbackULTRASONICcommand("0", response);
                     uint8_globalsV_value_of_kl = 0;
                     m_alerts.alertsCommand("3", response);
