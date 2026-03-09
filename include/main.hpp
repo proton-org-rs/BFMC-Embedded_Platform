@@ -62,5 +62,7 @@
 #include <utils/task.hpp>
 /* Header file for the Tofsensor functionality */
 #include <periodics/tofsensor.hpp>
+/* Header file for the Headlight functionality */
+#include <utils/headlight.hpp>
 /* Header file for the ultrasonic sensor functionality */
 #include <periodics/ultrasonicsensor.hpp>

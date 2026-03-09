@@ -59,10 +59,10 @@ periodics::CTotalVoltage g_totalvoltage(g_baseTick*3000, A4, g_rpi);
 periodics::CImu g_imu(g_baseTick*150, g_rpi, I2C_SDA, I2C_SCL);
 
 //PIN for a motor speed in ms, inferior and superior limit
-drivers::CSpeedingMotor g_speedingDriver(D3, -500, 500); //speed in mm/s
+drivers::CSpeedingMotor g_speedingDriver(PB_4, -500, 500); //speed in mm/s
 
 //PIN for angle in servo degrees, inferior and superior limit scaled by 10 for precision (250 = 25.0°)
-drivers::CSteeringMotor g_steeringDriver(D4, -250, 250);
+drivers::CSteeringMotor g_steeringDriver(PB_5, -250, 250);
 
 // Create the motion controller, which controls the robot states and the robot moves based on the transmitted command over the serial interface.
 brain::CRobotStateMachine g_robotstatemachine(g_baseTick * 1, g_rpi, g_steeringDriver, g_speedingDriver);
@@ -70,8 +70,10 @@ brain::CRobotStateMachine g_robotstatemachine(g_baseTick * 1, g_rpi, g_steeringD
 periodics::CResourcemonitor g_resourceMonitor(g_baseTick * 5000, g_rpi);
 
 /* USER NEW COMPONENT BEGIN */
-// TOF sensor on I2C2 (PB_3=SDA, PB_10=SCL)
-periodics::CTofsensor g_tofsensorRight(g_baseTick * 25, PB_6, PB_3, PB_10, g_rpi, "rightSide", 0x30, 300); // address changed to 0x30
+utils::CHeadlight g_headlightLeft(g_baseTick * 100, PA_7, "leftLight");
+utils::CHeadlight g_headlightRight(g_baseTick * 100, PA_6, "rightLight");
+// Right TOF sensor on I2C2 (PB_3=SDA, PB_10=SCL)
+periodics::CTofsensor g_tofsensorRight(g_baseTick * 500, PB_6, PB_3, PB_10, g_rpi, "rightSide", 0x30, 300); // address changed to 0x30
 
 DigitalOut g_PC7(PC_7, 1); // Configure PC_7 as output and drive it high (D9 high for imu vcc)
 DigitalOut g_PA9(PA_9, 1); // Configure PA_9 as output and drive it high (D8 high for tof vcc)
@@ -85,10 +87,6 @@ brain::CKlmanager g_klmanager(g_alerts, g_imu, g_instantconsumption, g_totalvolt
 periodics::CPowermanager g_powermanager(g_baseTick * 100, g_klmanager, g_rpi, g_totalvoltage, g_instantconsumption, g_alerts);
 
 brain::CBatterymanager g_batteryManager(dummy_value);
-
-/* USER NEW COMPONENT BEGIN */
-
-/* USER NEW COMPONENT END */
 
 // Map for redirecting messages with the key and the callback functions. If the message key equals to one of the enumerated keys, than it will be applied the paired callback function.
 drivers::CSerialMonitor::CSerialSubscriberMap g_serialMonitorSubscribers = {
@@ -106,6 +104,8 @@ drivers::CSerialMonitor::CSerialSubscriberMap g_serialMonitorSubscribers = {
     {"batteryCapacity",mbed::callback(&g_batteryManager,    &brain::CBatterymanager::serialCallbackBATTERYCommand)},
     {"resourceMonitor",mbed::callback(&g_resourceMonitor,   &periodics::CResourcemonitor::serialCallbackRESMONCommand)},
     {g_tofsensorRight.m_name, mbed::callback(&g_tofsensorRight, &periodics::CTofsensor::serialCallbackTofsensorCommand)},
+    {"leftLight",      mbed::callback(&g_headlightLeft, &utils::CHeadlight::serialCallbackHeadlightCommand)},
+    {"rightLight",     mbed::callback(&g_headlightRight, &utils::CHeadlight::serialCallbackHeadlightCommand)},
     {g_ultrasonicSensor.m_name, mbed::callback(&g_ultrasonicSensor, &periodics::CUltrasonicsensor::serialCallbackULTRASONICcommand)}
 };
 
@@ -124,6 +124,8 @@ utils::CTask* g_taskList[] = {
     &g_resourceMonitor,
     &g_alerts,
     // USER NEW PERIODICS BEGIN
+    &g_headlightLeft,
+    &g_headlightRight,
     &g_tofsensorRight,
     &g_ultrasonicSensor,
     // USER NEW PERIODICS END
@@ -131,6 +133,38 @@ utils::CTask* g_taskList[] = {
 
 // Create the task manager, which applies periodically the tasks, miming a parallelism. It needs the list of task and the time base in seconds. 
 utils::CTaskManager g_taskManager(g_taskList, sizeof(g_taskList)/sizeof(utils::CTask*), g_baseTick);
+
+/**
+ * @brief Initialize headlights with greeting pattern
+ * Alternates left and right twice, then keeps both on
+ */
+void initializeHeadlights()
+{
+    // Pattern: left on, right off
+    g_headlightLeft.set(true);
+    g_headlightRight.set(false);
+    ThisThread::sleep_for(chrono::milliseconds(1000));
+    
+    // Pattern: right on, left off
+    g_headlightLeft.set(false);
+    g_headlightRight.set(true);
+    ThisThread::sleep_for(chrono::milliseconds(1000));
+    
+    // Pattern: left on, right off (2nd time)
+    g_headlightLeft.set(true);
+    g_headlightRight.set(false);
+    ThisThread::sleep_for(chrono::milliseconds(1000));
+    
+    // Pattern: right on, left off (2nd time)
+    g_headlightLeft.set(false);
+    g_headlightRight.set(true);
+    ThisThread::sleep_for(chrono::milliseconds(1000));
+    
+    // Keep both on and maintain stable state
+    g_headlightLeft.set(true);
+    g_headlightRight.set(true);
+    ThisThread::sleep_for(chrono::milliseconds(500)); // Extra stability delay
+}
 
 /**
  * @brief Setup function for initializing some objects and transmitting a startup message through the serial. 
@@ -151,6 +185,8 @@ uint8_t setup()
     g_rpi.write("#               #\r\n", 19);
     g_rpi.write("#################\r\n", 19);
     g_rpi.write("\r\n", 2);
+    
+    initializeHeadlights();
 
     return 0;    
 }

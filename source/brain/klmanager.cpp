@@ -45,13 +45,9 @@ namespace brain
         periodics::CInstantConsumption& f_instant,
         periodics::CTotalVoltage& f_baterry,
         brain::CRobotStateMachine& f_robotStateMachine,
-<<<<<<< Updated upstream
-        periodics::CResourcemonitor& f_resourceM
-=======
         periodics::CResourcemonitor& f_resourceM,
         periodics::CTofsensor& f_tofSensorRight,
         periodics::CUltrasonicsensor& f_ultrasonicSensor
->>>>>>> Stashed changes
     )
     : m_klvalue(0)
     , m_alerts(f_alerts)
@@ -60,11 +56,8 @@ namespace brain
     , m_baterry(f_baterry)
     , m_robotStateMachine(f_robotStateMachine)
     , m_resourceM(f_resourceM)
-<<<<<<< Updated upstream
-=======
     , m_tofSensorRight(f_tofSensorRight)
     , m_ultrasonicSensor(f_ultrasonicSensor)
->>>>>>> Stashed changes
     {
         /* constructor behaviour */
     }
